@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
-//const { getParameter } = require("./.ebextensions/aws.config"); // Assuming a separate AWS config file
+const { getParameter } = require("./config/aws.config.js"); // Assuming a separate AWS config file
 
 var createError = require("http-errors");
 var path = require("path");
@@ -46,7 +46,7 @@ const {
   SOURCE: source,
 } = process.env;
 
-/*(async function () {
+(async function () {
   try {
     const dataString = await getParameter("DATABASE_STRING");
     if (!DATABASE_STRING) DATABASE_STRING = dataString;
@@ -61,7 +61,7 @@ const {
   } catch (error) {
     console.log(error.message);
   }
-})();*/
+})();
 
 mongoose.connect(DATABASE_STRING, {
   useNewUrlParser: true,
