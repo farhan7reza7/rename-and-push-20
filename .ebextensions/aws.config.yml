@@ -1,0 +1,8 @@
+option_settings:
+  aws:elasticbeanstalk:application:environment:
+    DATABASE_STRING: "{{resolve:ssm:DATABASE_STRING:1}}"
+    WS_ACCESS_Id: "{{resolve:ssm:WS_ACCESS_Id:1}}"
+    WS_SECRET: "{{resolve:ssm:WS_SECRET:1}}"
+    TOKEN_SECRET: "{{resolve:ssm:TOKEN_SECRET:1}}"
+    SOURCE: "{{resolve:ssm:SOURCE:1}}"
+    WS_REGION: "{{resolve:ssm:WS_REGION:1}}"
