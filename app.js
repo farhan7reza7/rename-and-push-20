@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
-const { getParameter } = require("./.ebextensions/aws.config"); // Assuming a separate AWS config file
+//const { getParameter } = require("./.ebextensions/aws.config"); // Assuming a separate AWS config file
 
 var createError = require("http-errors");
 var path = require("path");
