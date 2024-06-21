@@ -36,9 +36,9 @@ const {
 } = require("@aws-sdk/client-ses");
 
 const {
-  AWS_SECRET: awsSecret,
-  AWS_REGION: awsRegion,
-  AWS_ACCESS_Id: awsId,
+  WS_SECRET: awsSecret,
+  WS_REGION: awsRegion,
+  WS_ACCESS_Id: awsId,
   TOKEN_SECRET: secret,
   DATABASE_STRING,
   SOURCE: source,
