@@ -1,4 +1,3 @@
-//(async function () {
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -49,17 +48,21 @@ const {
 
 (async function () {
   try {
-    const secretAws = await getParameter("WS_SECRET");
-    const awsRegion1 = await getParameter("WS_REGION");
-    const awsId1 = await getParameter("WS_ACCESS_Id");
-    const secret1 = await getParameter("TOKEN_SECRET");
     const dataString = await getParameter("DATABASE_STRING");
-
-    if (!awsSecret) awsSecret = secretAws;
-    if (!awsRegion) awsRegion = awsRegion1;
-    if (!awsId) awsId = awsId1;
-    if (!secret) secret = secret1;
     if (!DATABASE_STRING) DATABASE_STRING = dataString;
+    const awsId1 = await getParameter("WS_ACCESS_Id");
+    if (!awsId) awsId = awsId1;
+    const secretAws = await getParameter("WS_SECRET");
+    if (!awsSecret) awsSecret = secretAws;
+    const secret1 = await getParameter("TOKEN_SECRET");
+    if (!secret) secret = secret1;
+    const awsRegion1 = await getParameter("WS_REGION");
+    if (!awsRegion) awsRegion = awsRegion1;
+
+    mongoose.connect(DATABASE_STRING, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
   } catch (error) {
     console.log(error.message);
   }
@@ -71,11 +74,6 @@ const sesClient = new SESClient({
     accessKeyId: awsId,
     secretAccessKey: awsSecret,
   },
-});
-
-mongoose.connect(DATABASE_STRING, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 });
 
 const User = mongoose.model("User", {
@@ -475,4 +473,3 @@ app.listen(5000, () => {
 });
 
 module.exports = app;
-//})();
