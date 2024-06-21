@@ -149,7 +149,7 @@ const messageCreator = (text, email) => {
         Charset: "UTF-8",
       },
     },
-    Source: source ? source : "fr7reza@gmail.com",
+    Source: source,
   };
   return messageData;
 };
