@@ -1,3 +1,4 @@
+//(async function () {
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -5,6 +6,8 @@ const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
+
+const { getParameter } = require("./.ebextensions/aws.config"); // Assuming a separate AWS config file
 
 var createError = require("http-errors");
 var path = require("path");
@@ -43,6 +46,24 @@ const {
   DATABASE_STRING,
   SOURCE: source,
 } = process.env;
+
+(async function () {
+  try {
+    const secretAws = await getParameter("WS_SECRET");
+    const awsRegion1 = await getParameter("WS_REGION");
+    const awsId1 = await getParameter("WS_ACCESS_Id");
+    const secret1 = await getParameter("TOKEN_SECRET");
+    const dataString = await getParameter("DATABASE_STRING");
+
+    if (!awsSecret) awsSecret = secretAws;
+    if (!awsRegion) awsRegion = awsRegion1;
+    if (!awsId) awsId = awsId1;
+    if (!secret) secret = secret1;
+    if (!DATABASE_STRING) DATABASE_STRING = dataString;
+  } catch (error) {
+    console.log(error.message);
+  }
+})();
 
 const sesClient = new SESClient({
   region: awsRegion,
@@ -130,7 +151,7 @@ const messageCreator = (text, email) => {
         Charset: "UTF-8",
       },
     },
-    Source: source,
+    Source: source ? source : "fr7reza@gmail.com",
   };
   return messageData;
 };
@@ -142,7 +163,9 @@ app.post("/login", async (req, res, next) => {
       username: details.username,
     });
     if (user && (await bcrypt.compare(details.password, user.password))) {
-      const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1m" });
+      const token = jwt.sign({ userId: user._id }, secret, {
+        expiresIn: "1m",
+      });
       const verificationLink = `http://localhost:3000/api/verify-mfa?token=${token}&userId=${user._id}`;
 
       const messageData = messageCreator(
@@ -222,7 +245,9 @@ app.post("/forget", async (req, res, next) => {
     const { email, username } = req.body;
     const user = await User.findOne({ username: username, email: email });
     if (user) {
-      const token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1m" });
+      const token = jwt.sign({ userId: user._id }, secret, {
+        expiresIn: "1m",
+      });
       const verificationLink = `http://localhost:3000/api/verify-email?token=${token}&userId=${user._id}`;
       const messageData = messageCreator(
         `Please click this link to reset your password ${verificationLink}`,
@@ -450,3 +475,4 @@ app.listen(5000, () => {
 });
 
 module.exports = app;
+//})();
