@@ -46,7 +46,7 @@ const {
   SOURCE: source,
 } = process.env;
 
-(async function () {
+/*(async function () {
   try {
     const dataString = await getParameter("DATABASE_STRING");
     if (!DATABASE_STRING) DATABASE_STRING = dataString;
@@ -61,7 +61,7 @@ const {
   } catch (error) {
     console.log(error.message);
   }
-})();
+})();*/
 
 mongoose.connect(DATABASE_STRING, {
   useNewUrlParser: true,
