@@ -58,15 +58,15 @@ const {
     if (!secret) secret = secret1;
     const awsRegion1 = await getParameter("WS_REGION");
     if (!awsRegion) awsRegion = awsRegion1;
-
-    mongoose.connect(DATABASE_STRING, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
   } catch (error) {
     console.log(error.message);
   }
 })();
+
+mongoose.connect(DATABASE_STRING, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const sesClient = new SESClient({
   region: awsRegion,
