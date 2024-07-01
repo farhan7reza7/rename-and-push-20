@@ -51,6 +51,7 @@ const app = express();
 
 // set env
 app.set("env", NODE_ENV || "development");
+app.set("trust proxy", true);
 
 // mount routes
 app.use("/", indexRouter);
@@ -275,6 +276,7 @@ const limiter = expressRateLimit({
   max: 200,
   message: "Too many requests from this IP, please try again later.",
   headers: true,
+  keyGenerator: (req) => req.ip,
 });
 // limit api rate globally
 app.use(limiter);
