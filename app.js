@@ -3,6 +3,8 @@ const crypto = require("crypto");
 
 const express = require("express");
 const mongoose = require("mongoose");
+const Redis = require("ioredis");
+const { promisify } = require("util");
 
 // hash pass strongly
 const bcrypt = require("bcrypt");
@@ -69,6 +71,65 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// handle caching
+const redis = new Redis({
+  host:
+    NODE_ENV === "development"
+      ? "localhost"
+      : "backend-dev.ap-northeast-3.elasticbeanstalk.com",
+  port: 6379,
+  maxMemory: "100mb",
+  maxRetriesPerRequest: null,
+  maxMemoryPolicy: "volatile-lru",
+});
+
+const redisLogger = winston.createLogger({
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  level: "info",
+  transports: new winston.transports.File({
+    filename: "redis.log",
+    level: "info",
+  }),
+});
+redis.on("error", (err) => {
+  console.error("Redis error: ", err.message);
+  redisLogger.error("Redis error: ", err);
+});
+
+redis.on("connect", () => {
+  console.log("Connected to Redis server");
+  redisLogger.info("Connected to Redis server");
+});
+
+const getAsync = promisify(redis.get).bind(redis);
+const setAsync = promisify(redis.set).bind(redis);
+const delAsync = promisify(redis.del).bind(redis);
+
+const cacheMiddleware = async (req, res, next) => {
+  let cacheKey = req.originalUrl || req.url;
+  cacheKey = cacheKey.replace(/\?.*$/, "");
+  try {
+    const cacheData = await getAsync(cacheKey);
+    if (cacheData) {
+      console.log("Cache hit!");
+      redisLogger.info("Cache hit!, Data: " + JSON.parse(cacheData));
+
+      res.json(JSON.parse(cacheData));
+    } else {
+      console.log("Cache miss");
+      redisLogger.warn("Cache miss");
+      next();
+    }
+  } catch (err) {
+    console.error("redis error: ", err.message);
+    redisLogger.error("redis error: ", err.message);
+    next();
+  }
+};
 
 app.use((req, res, next) => {
   res.locals.nonce = crypto.randomBytes(16).toString("base64");
@@ -727,6 +788,11 @@ app.post(
       res.status(400).json({ errors: errors.array() });
     }
     const { content, userId } = req.body;
+    let cacheKey = req.originalUrl || req.url;
+    redisLogger.info("original url: " + cacheKey);
+
+    cacheKey = cacheKey.replace(/\/task/, "/tasks");
+    redisLogger.info("changed url: " + cacheKey);
 
     try {
       const user = await User.findById(userId);
@@ -737,17 +803,23 @@ app.post(
       await task.save();
       user.tasks.push(task._id);
       await user.save();
-      res.json({ message: "added successfully" });
+      await delAsync(cacheKey);
+      redisLogger.info("deleted key: " + cacheKey);
+      res.json({ message: "added successfully and cache invalidated" });
     } catch (error) {
       next(error);
     }
   }
 );
 
-app.get("/tasks", authenticate, async (req, res, next) => {
+app.get("/tasks", authenticate, cacheMiddleware, async (req, res, next) => {
   try {
     const { userId } = req.query;
     const user = await User.findById(userId).populate("tasks");
+    let cacheKey = req.originalUrl || req.url;
+    cacheKey = cacheKey.replace(/\?.*$/, "");
+    await setAsync(cacheKey, JSON.stringify({ tasks: user.tasks }), "EX", 3600);
+    redisLogger.info("set key: " + cacheKey);
     if (!user) {
       res.status(404).json({ message: "user not found" });
     } else {
@@ -758,6 +830,16 @@ app.get("/tasks", authenticate, async (req, res, next) => {
     next(error);
   }
 });
+
+/*redis.flushall((err, result) => {
+  if (err) {
+    console.error("Error clearing Redis cache:", err);
+    redisLogger.error("Error clearing Redis cache:", err);
+  } else {
+    console.log("Redis cache cleared successfully:", result);
+    redisLogger.warn("Redis cache cleared successfully:", result);
+  }
+});*/
 
 // create 404 error object
 app.use(function (req, res, next) {
