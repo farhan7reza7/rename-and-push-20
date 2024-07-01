@@ -43,6 +43,8 @@ const {
   DATABASE_STRING,
   SOURCE: source,
   NODE_ENV,
+  REDIS_HOST,
+  REDIS_PORT,
 } = process.env;
 
 const app = express();
@@ -74,11 +76,8 @@ app.use(
 
 // handle caching
 const redis = new Redis({
-  host:
-    NODE_ENV === "development"
-      ? "localhost"
-      : "backend-dev.ap-northeast-3.elasticbeanstalk.com",
-  port: 6379,
+  host: REDIS_HOST,
+  port: REDIS_PORT,
   maxMemory: "100mb",
   maxRetriesPerRequest: null,
   maxMemoryPolicy: "volatile-lru",
