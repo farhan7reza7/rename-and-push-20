@@ -1,4 +1,5 @@
-# QuranBookk.com Launches - Experience the Most Advanced Free Quran Platform with Premium Features ⚡️- The Ultimate Free Digital Quran Platform | Search, Audio & Translations All-in-One
+# QuranBookk.com Launches
+Experience the Most Advanced Free Quran Platform with Premium Features ⚡️- The Ultimate Free Digital Quran Platform | Search, Audio & Translations All-in-One
 
 ## 🌟 QuranBookk.com - The Most Advanced Free Digital Quran Platform | Search, Listen, Learn, and Explore
 
